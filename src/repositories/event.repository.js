@@ -39,10 +39,10 @@ const findById = async (id) => {
 
 const create = async (data) => {
   const { rows } = await db.query(`
-    INSERT INTO events (uuid, "calendarId", title, description, category, status, "eventDate", "eventTime", "createdAt", "updatedAt")
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW(),NOW()) RETURNING *
+    INSERT INTO events (uuid, "calendarId", title, description, category, status, "eventDate", "eventTime", "imageUrl", "createdAt", "updatedAt")
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW(),NOW()) RETURNING *
   `, [uuidv4(), data.calendarId, data.title, data.description || null,
-      data.category, data.status || 'PLANNED', data.eventDate, data.eventTime || null])
+      data.category, data.status || 'PLANNED', data.eventDate, data.eventTime || null, data.imageUrl || null])
   rows[0].attachments = []
   return rows[0]
 }
@@ -58,6 +58,7 @@ const update = async (id, data) => {
   if (data.status      !== undefined) { fields.push(`status = $${i++}`);      values.push(data.status) }
   if (data.eventDate   !== undefined) { fields.push(`"eventDate" = $${i++}`); values.push(data.eventDate) }
   if (data.eventTime   !== undefined) { fields.push(`"eventTime" = $${i++}`); values.push(data.eventTime) }
+  if (data.imageUrl    !== undefined) { fields.push(`"imageUrl" = $${i++}`);  values.push(data.imageUrl || null) }
 
   fields.push(`"updatedAt" = NOW()`)
   values.push(id)

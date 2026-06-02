@@ -11,6 +11,7 @@ const createEventSchema = z.object({
   status:      z.enum(statuses).optional(),
   eventDate:   z.string().datetime({ message: 'Data inválida, use ISO 8601' }),
   eventTime:   z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida, use HH:MM').optional(),
+  imageUrl:    z.string().url('URL inválida').optional().or(z.literal('')),
 })
 
 const updateEventSchema = createEventSchema.partial()
