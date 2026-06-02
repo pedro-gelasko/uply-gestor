@@ -1,11 +1,11 @@
 const app    = require('./app')
 const logger = require('./utils/logger')
-const prisma = require('./database/prisma')
+const db     = require('./database/db')
 const { port } = require('./config/env')
 
 async function bootstrap() {
   try {
-    await prisma.$connect()
+    await db.connect()
     logger.info('Conexão com banco de dados estabelecida')
 
     app.listen(port, () => {
@@ -19,7 +19,7 @@ async function bootstrap() {
   }
 }
 
-process.on('SIGINT',  async () => { await prisma.$disconnect(); process.exit(0) })
-process.on('SIGTERM', async () => { await prisma.$disconnect(); process.exit(0) })
+process.on('SIGINT',  async () => { await db.pool.end(); process.exit(0) })
+process.on('SIGTERM', async () => { await db.pool.end(); process.exit(0) })
 
 bootstrap()
