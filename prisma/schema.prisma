@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum EventCategory {
+  VIDEO
+  REELS
+  STORY
+  CREATIVE
+  CAMPAIGN
+  INSTITUTIONAL
+  COMMEMORATIVE
+  OTHER
+}
+
+enum EventStatus {
+  PLANNED
+  IN_PRODUCTION
+  WAITING_APPROVAL
+  PUBLISHED
+  CANCELLED
+}
+
+enum CalendarStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model Client {
+  id              Int       @id @default(autoincrement())
+  uuid            String    @unique @default(uuid())
+  name            String
+  responsibleName String
+  phone           String?
+  email           String    @unique
+  notes           String?
+  logoPath        String?
+  status          ClientStatus @default(ACTIVE)
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  calendars       Calendar[]
+  shares          Share[]
+
+  @@map("clients")
+}
+
+model Calendar {
+  id        Int            @id @default(autoincrement())
+  uuid      String         @unique @default(uuid())
+  clientId  Int
+  name      String
+  month     Int
+  year      Int
+  status    CalendarStatus @default(ACTIVE)
+  deletedAt DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  client    Client         @relation(fields: [clientId], references: [id])
+  events    Event[]
+
+  @@map("calendars")
+}
+
+model Event {
+  id          Int           @id @default(autoincrement())
+  uuid        String        @unique @default(uuid())
+  calendarId  Int
+  title       String
+  description String?
+  category    EventCategory
+  status      EventStatus   @default(PLANNED)
+  eventDate   DateTime
+  eventTime   String?
+  deletedAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  calendar    Calendar      @relation(fields: [calendarId], references: [id])
+  attachments Attachment[]
+
+  @@map("events")
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  eventId   Int
+  fileName  String
+  filePath  String
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@map("attachments")
+}
+
+model Share {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid())
+  clientId  Int
+  token     String   @unique @default(uuid())
+  expiresAt DateTime?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  client    Client   @relation(fields: [clientId], references: [id])
+
+  @@map("shares")
+}
+
+model History {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  entityType  String
+  entityId    String
+  action      String
+  description String
+  createdAt   DateTime @default(now())
+
+  @@map("history")
+}
