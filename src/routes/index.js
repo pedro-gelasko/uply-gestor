@@ -1,5 +1,6 @@
 const router = require('express').Router()
 
+router.use('/auth',        require('./auth.routes'))
 router.use('/clients',     require('./client.routes'))
 router.use('/calendars',   require('./calendar.routes'))
 router.use('/events',      require('./event.routes'))
