@@ -43,7 +43,7 @@ const changePassword = async (req, res, next) => {
     const { currentPassword, newPassword, confirmPassword } = req.body
     if (!currentPassword || !newPassword) return badRequest(res, 'Preencha todos os campos')
     if (newPassword !== confirmPassword) return badRequest(res, 'Nova senha e confirmação não conferem')
-    await authSvc.changePassword(req.user.id, currentPassword, newPassword)
+    await authSvc.changePassword(req.user.id, currentPassword, newPassword, !!req.body.force)
     return success(res, null, 'Senha alterada com sucesso')
   } catch (err) { next(err) }
 }

@@ -80,14 +80,16 @@ const toggleUser = async (id, requesterRole) => {
   return userRepo.updateActive(id, !user.active)
 }
 
-const changePassword = async (userId, currentPassword, newPassword) => {
+const changePassword = async (userId, currentPassword, newPassword, force = false) => {
   const user = await userRepo.findByEmailFull(userId)
   if (!user) {
     const err = new Error('Usuário não encontrado'); err.status = 404; throw err
   }
-  const valid = await bcrypt.compare(currentPassword, user.password)
-  if (!valid) {
-    const err = new Error('Senha atual incorreta'); err.status = 401; throw err
+  if (!force) {
+    const valid = await bcrypt.compare(currentPassword, user.password)
+    if (!valid) {
+      const err = new Error('Senha atual incorreta'); err.status = 401; throw err
+    }
   }
   if (newPassword.length < 6) {
     const err = new Error('Nova senha deve ter ao menos 6 caracteres'); err.status = 400; throw err

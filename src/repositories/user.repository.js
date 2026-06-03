@@ -12,11 +12,14 @@ const findByEmailFull = async (id) => {
 }
 
 const updatePassword = async (id, hashedPassword) => {
-  await db.query(`UPDATE users SET password = $1, "updatedAt" = NOW() WHERE id = $2`, [hashedPassword, id])
+  await db.query(
+    `UPDATE users SET password = $1, "mustChangePassword" = false, "updatedAt" = NOW() WHERE id = $2`,
+    [hashedPassword, id]
+  )
 }
 
 const findById = async (id) => {
-  const { rows } = await db.query(`SELECT id, uuid, name, email, role, active, "createdAt" FROM users WHERE id = $1`, [id])
+  const { rows } = await db.query(`SELECT id, uuid, name, email, role, active, "mustChangePassword", "createdAt" FROM users WHERE id = $1`, [id])
   return rows[0] || null
 }
 
@@ -27,8 +30,8 @@ const findAll = async () => {
 
 const create = async (data) => {
   const { rows } = await db.query(`
-    INSERT INTO users (uuid, name, email, password, role, active, "createdAt", "updatedAt")
-    VALUES ($1,$2,$3,$4,$5,true,NOW(),NOW()) RETURNING id, uuid, name, email, role, active, "createdAt"
+    INSERT INTO users (uuid, name, email, password, role, active, "mustChangePassword", "createdAt", "updatedAt")
+    VALUES ($1,$2,$3,$4,$5,true,true,NOW(),NOW()) RETURNING id, uuid, name, email, role, active, "mustChangePassword", "createdAt"
   `, [uuidv4(), data.name, data.email, data.password, data.role || 'ADMIN'])
   return rows[0]
 }
