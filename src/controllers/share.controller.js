@@ -22,6 +22,14 @@ const create = async (req, res, next) => {
   } catch (err) { next(err) }
 }
 
+const toggle = async (req, res, next) => {
+  try {
+    const share = await shareSvc.toggle(req.params.id)
+    const msg = share.active ? 'Link ativado com sucesso' : 'Link desativado com sucesso'
+    return success(res, share, msg)
+  } catch (err) { next(err) }
+}
+
 const remove = async (req, res, next) => {
   try {
     await shareSvc.remove(req.params.id)
@@ -29,4 +37,4 @@ const remove = async (req, res, next) => {
   } catch (err) { next(err) }
 }
 
-module.exports = { getAll, getPublic, create, remove }
+module.exports = { getAll, getPublic, create, toggle, remove }

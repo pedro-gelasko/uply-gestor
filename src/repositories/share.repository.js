@@ -63,8 +63,15 @@ const create = async (data) => {
   return rows[0]
 }
 
+const toggle = async (id) => {
+  const { rows } = await db.query(
+    `UPDATE shares SET active = NOT active WHERE id = $1 RETURNING *`, [id]
+  )
+  return rows[0]
+}
+
 const remove = async (id) => {
   await db.query(`DELETE FROM shares WHERE id = $1`, [id])
 }
 
-module.exports = { findAll, findById, findByToken, create, remove }
+module.exports = { findAll, findById, findByToken, create, toggle, remove }

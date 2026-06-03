@@ -36,6 +36,19 @@ const create = async (data) => {
   return share
 }
 
+const toggle = async (id) => {
+  const share = await shareRepo.findById(parseInt(id))
+  if (!share) {
+    const err = new Error('Compartilhamento não encontrado')
+    err.status = 404
+    throw err
+  }
+  const updated = await shareRepo.toggle(share.id)
+  const action = updated.active ? 'Ativado' : 'Desativado'
+  await historySvc.log('SHARE', share.id, 'UPDATE', `Link de compartilhamento ${action}`)
+  return updated
+}
+
 const remove = async (id) => {
   const share = await shareRepo.findById(parseInt(id))
   if (!share) {
@@ -47,4 +60,4 @@ const remove = async (id) => {
   await historySvc.log('SHARE', share.id, 'DELETE', `Link de compartilhamento removido`)
 }
 
-module.exports = { getAll, getByToken, create, remove }
+module.exports = { getAll, getByToken, create, toggle, remove }
