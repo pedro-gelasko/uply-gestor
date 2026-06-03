@@ -6,6 +6,15 @@ const findByEmail = async (email) => {
   return rows[0] || null
 }
 
+const findByEmailFull = async (id) => {
+  const { rows } = await db.query(`SELECT * FROM users WHERE id = $1`, [id])
+  return rows[0] || null
+}
+
+const updatePassword = async (id, hashedPassword) => {
+  await db.query(`UPDATE users SET password = $1, "updatedAt" = NOW() WHERE id = $2`, [hashedPassword, id])
+}
+
 const findById = async (id) => {
   const { rows } = await db.query(`SELECT id, uuid, name, email, role, active, "createdAt" FROM users WHERE id = $1`, [id])
   return rows[0] || null
@@ -32,4 +41,4 @@ const updateActive = async (id, active) => {
   return rows[0]
 }
 
-module.exports = { findByEmail, findById, findAll, create, updateActive }
+module.exports = { findByEmail, findByEmailFull, findById, findAll, create, updateActive, updatePassword }

@@ -38,4 +38,14 @@ const toggleUser = async (req, res, next) => {
   } catch (err) { next(err) }
 }
 
-module.exports = { login, me, createUser, getUsers, toggleUser }
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body
+    if (!currentPassword || !newPassword) return badRequest(res, 'Preencha todos os campos')
+    if (newPassword !== confirmPassword) return badRequest(res, 'Nova senha e confirmação não conferem')
+    await authSvc.changePassword(req.user.id, currentPassword, newPassword)
+    return success(res, null, 'Senha alterada com sucesso')
+  } catch (err) { next(err) }
+}
+
+module.exports = { login, me, createUser, getUsers, toggleUser, changePassword }
