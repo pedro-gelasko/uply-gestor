@@ -6,6 +6,7 @@ const createClientSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email('E-mail inválido'),
   notes: z.string().optional(),
+  logoPath: z.string().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
 })
 

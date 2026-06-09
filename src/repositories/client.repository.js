@@ -53,9 +53,9 @@ const findById = async (id) => {
 
 const create = async (data) => {
   const { rows } = await db.query(`
-    INSERT INTO clients (uuid, name, "responsibleName", phone, email, notes, status, "createdAt", "updatedAt")
-    VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),NOW()) RETURNING *
-  `, [uuidv4(), data.name, data.responsibleName, data.phone || null, data.email, data.notes || null, data.status || 'ACTIVE'])
+    INSERT INTO clients (uuid, name, "responsibleName", phone, email, notes, "logoPath", status, "createdAt", "updatedAt")
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW(),NOW()) RETURNING *
+  `, [uuidv4(), data.name, data.responsibleName, data.phone || null, data.email, data.notes || null, data.logoPath || null, data.status || 'ACTIVE'])
   return rows[0]
 }
 
