@@ -1,5 +1,8 @@
 const clientRepo   = require('../repositories/client.repository')
+const calendarRepo = require('../repositories/calendar.repository')
 const historySvc   = require('./history.service')
+
+const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 
 const getAll = () => clientRepo.findAll()
 
@@ -15,6 +18,18 @@ const getById = async (id) => {
 
 const create = async (data) => {
   const client = await clientRepo.create(data)
+
+  const now = new Date()
+  const month = now.getMonth() + 1
+  const year  = now.getFullYear()
+  await calendarRepo.create({
+    clientId: client.id,
+    name:     `Calendário ${MONTHS_PT[month - 1]} ${year}`,
+    month,
+    year,
+    status:   'ACTIVE',
+  })
+
   await historySvc.log('CLIENT', client.id, 'CREATE', `Cliente "${client.name}" criado`)
   return client
 }
