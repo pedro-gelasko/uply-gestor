@@ -49,7 +49,7 @@ const createDefaultCalendar = async (clientId) => {
 const create = async (data) => {
   const client = await clientRepo.create(data)
   await createDefaultCalendar(client.id)
-  await historySvc.log('CLIENT', client.id, 'CREATE', `Cliente "${client.name}" criado`)
+  historySvc.log('CLIENT', client.id, 'CREATE', `Cliente "${client.name}" criado`).catch(() => {})
   return client
 }
 
