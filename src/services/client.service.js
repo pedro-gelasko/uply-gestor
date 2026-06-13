@@ -6,6 +6,21 @@ const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho'
 
 const getAll = () => clientRepo.findAll()
 
+const ensureCalendar = async (client) => {
+  if (client.calendars && client.calendars.length > 0) return client
+  const now   = new Date()
+  const month = now.getMonth() + 1
+  const year  = now.getFullYear()
+  await calendarRepo.create({
+    clientId: client.id,
+    name:     `Calendário ${MONTHS_PT[month - 1]} ${year}`,
+    month,
+    year,
+    status:   'ACTIVE',
+  })
+  return clientRepo.findById(client.id)
+}
+
 const getById = async (id) => {
   const client = await clientRepo.findById(parseInt(id))
   if (!client) {
@@ -13,7 +28,7 @@ const getById = async (id) => {
     err.status = 404
     throw err
   }
-  return client
+  return ensureCalendar(client)
 }
 
 const create = async (data) => {
