@@ -5,22 +5,39 @@ const findAll = async () => {
   const { rows: clients } = await db.query(`
     SELECT * FROM clients WHERE "deletedAt" IS NULL ORDER BY "createdAt" DESC
   `)
+  if (!clients.length) return []
+
+  const clientIds = clients.map(c => c.id)
+
+  const [{ rows: calendars }, { rows: allEvents }] = await Promise.all([
+    db.query(`
+      SELECT id, uuid, "clientId", name, month, year, status
+      FROM calendars WHERE "clientId" = ANY($1) AND "deletedAt" IS NULL
+    `, [clientIds]),
+    db.query(`
+      SELECT e.id, e.uuid, e."calendarId", e.title, e."eventDate", e.category, e.status
+      FROM events e
+      JOIN calendars cal ON cal.id = e."calendarId"
+      WHERE cal."clientId" = ANY($1) AND e."deletedAt" IS NULL AND cal."deletedAt" IS NULL
+      ORDER BY e."eventDate" ASC
+    `, [clientIds]),
+  ])
+
+  const eventsByCalendar = {}
+  for (const ev of allEvents) {
+    if (!eventsByCalendar[ev.calendarId]) eventsByCalendar[ev.calendarId] = []
+    eventsByCalendar[ev.calendarId].push(ev)
+  }
+
+  const calendarsByClient = {}
+  for (const cal of calendars) {
+    cal.events = eventsByCalendar[cal.id] || []
+    if (!calendarsByClient[cal.clientId]) calendarsByClient[cal.clientId] = []
+    calendarsByClient[cal.clientId].push(cal)
+  }
 
   for (const client of clients) {
-    const { rows: calendars } = await db.query(`
-      SELECT id, uuid, name, month, year, status FROM calendars
-      WHERE "clientId" = $1 AND "deletedAt" IS NULL
-    `, [client.id])
-
-    for (const cal of calendars) {
-      const { rows: events } = await db.query(`
-        SELECT id, uuid, title, "eventDate", category, status
-        FROM events WHERE "calendarId" = $1 AND "deletedAt" IS NULL ORDER BY "eventDate" ASC
-      `, [cal.id])
-      cal.events = events
-    }
-
-    client.calendars = calendars
+    client.calendars = calendarsByClient[client.id] || []
   }
 
   return clients
@@ -36,15 +53,27 @@ const findById = async (id) => {
     SELECT * FROM calendars WHERE "clientId" = $1 AND "deletedAt" IS NULL
   `, [id])
 
-  for (const cal of calendars) {
+  if (calendars.length) {
+    const calendarIds = calendars.map(c => c.id)
     const { rows: events } = await db.query(`
       SELECT e.*, json_agg(a.*) FILTER (WHERE a.id IS NOT NULL) AS attachments
       FROM events e
       LEFT JOIN attachments a ON a."eventId" = e.id
-      WHERE e."calendarId" = $1 AND e."deletedAt" IS NULL
+      WHERE e."calendarId" = ANY($1) AND e."deletedAt" IS NULL
       GROUP BY e.id ORDER BY e."eventDate" ASC
-    `, [cal.id])
-    cal.events = events.map(e => ({ ...e, attachments: e.attachments || [] }))
+    `, [calendarIds])
+
+    const eventsByCalendar = {}
+    for (const ev of events) {
+      ev.attachments = ev.attachments || []
+      if (!eventsByCalendar[ev.calendarId]) eventsByCalendar[ev.calendarId] = []
+      eventsByCalendar[ev.calendarId].push(ev)
+    }
+    for (const cal of calendars) {
+      cal.events = eventsByCalendar[cal.id] || []
+    }
+  } else {
+    for (const cal of calendars) cal.events = []
   }
 
   rows[0].calendars = calendars
