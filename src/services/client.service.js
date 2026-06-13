@@ -31,20 +31,24 @@ const getById = async (id) => {
   return ensureCalendar(client)
 }
 
+const createDefaultCalendar = async (clientId) => {
+  try {
+    const now   = new Date()
+    const month = now.getMonth() + 1
+    const year  = now.getFullYear()
+    await calendarRepo.create({
+      clientId,
+      name:   `Calendário ${MONTHS_PT[month - 1]} ${year}`,
+      month,
+      year,
+      status: 'ACTIVE',
+    })
+  } catch (_) {}
+}
+
 const create = async (data) => {
   const client = await clientRepo.create(data)
-
-  const now = new Date()
-  const month = now.getMonth() + 1
-  const year  = now.getFullYear()
-  await calendarRepo.create({
-    clientId: client.id,
-    name:     `Calendário ${MONTHS_PT[month - 1]} ${year}`,
-    month,
-    year,
-    status:   'ACTIVE',
-  })
-
+  await createDefaultCalendar(client.id)
   await historySvc.log('CLIENT', client.id, 'CREATE', `Cliente "${client.name}" criado`)
   return client
 }
